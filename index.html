@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>EasyCalculator</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1313ec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101022",
+                        "glass-dark": "rgba(35, 35, 72, 0.6)",
+                        "glass-light": "rgba(255, 255, 255, 0.1)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'glass': '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.15)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: max(884px, 100dvh);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #101022, #182352, #3c1e4a);
+        }
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glow-border {
+            position: relative;
+            overflow: hidden;
+        }
+        .glow-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.3), rgba(255, 0, 255, 0.3));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .icon-glow {
+            text-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+        .hero-glow {
+            filter: drop-shadow(0 0 20px rgba(74, 144, 226, 0.6));
+        }
+        .glow-effect {
+            position: absolute;
+            z-index: -1;
+            border-radius: 9999px;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+        .liquid-glass {
+            background-color: rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        /* Button glow effect */
+        .btn-glow {
+            transition: all 0.3s ease;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        .btn-glow:active::after {
+            opacity: 1;
+        }
+        .btn-glow:active {
+            transform: scale(0.95);
+        }
+        /* Theme styles */
+        .theme-liquid {
+            --bg-gradient: linear-gradient(135deg, #101022, #182352, #3c1e4a);
+            --primary-color: #1313ec;
+        }
+        .theme-crystal {
+            --bg-gradient: linear-gradient(135deg, #0a4f7c, #0a7ca4, #0a4f7c);
+            --primary-color: #0a7ca4;
+        }
+        .theme-holo {
+            --bg-gradient: linear-gradient(135deg, #4a0e4e, #81689d, #4a0e4e);
+            --primary-color: #81689d;
+        }
+        .theme-carbon {
+            --bg-gradient: linear-gradient(135deg, #1a1a1a, #2d2d2d, #1a1a1a);
+            --primary-color: #2d2d2d;
+        }
+        .theme-gold {
+            --bg-gradient: linear-gradient(135deg, #8b4513, #daa520, #8b4513);
+            --primary-color: #daa520;
+        }
+        .gradient-bg {
+            background: var(--bg-gradient);
+        }
+        /* Light mode styles */
+        .light-mode .gradient-bg {
+            background: linear-gradient(135deg, #f6f6f8, #e0e0e0, #d0d0d0);
+        }
+        .light-mode .glass-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        .light-mode .liquid-glass {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+        .light-mode .glass-dark {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .light-mode .glass-light {
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .light-mode .text-white {
+            color: #333 !important;
+        }
+        .light-mode .text-white\/60 {
+            color: rgba(51, 51, 51, 0.6) !important;
+        }
+        .light-mode .text-white\/80 {
+            color: rgba(51, 51, 51, 0.8) !important;
+        }
+        .light-mode .text-white\/90 {
+            color: rgba(51, 51, 51, 0.9) !important;
+        }
+        .light-mode .text-cyan-300 {
+            color: #00bcd4 !important;
+        }
+        .light-mode .text-cyan-400 {
+            color: #00bcd4 !important;
+        }
+        .light-mode .border-white\/10 {
+            border-color: rgba(0, 0, 0, 0.1) !important;
+        }
+        .light-mode .bg-glass-dark {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+        }
+        .light-mode .bg-glass-light {
+            background-color: rgba(255, 255, 255, 0.5) !important;
+        }
+        /* Selection indicator */
+        .selected {
+            box-shadow: 0 0 0 3px var(--primary-color) !important;
+        }
+        /* Smooth transitions */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        /* Dynamic color application */
+        .dynamic-color {
+            background-color: var(--primary-color) !important;
+        }
+        .dynamic-text-color {
+            color: var(--primary-color) !important;
+        }
+        .dynamic-border-color {
+            border-color: var(--primary-color) !important;
+        }
+        .dynamic-glow {
+            box-shadow: 0 0 15px var(--primary-color) !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark">
+    <!-- Audio element for button click sound -->
+    <audio id="clickSound" preload="auto"></audio>
+
+    <!-- Main Calculator Screen -->
+    <div id="main-screen" class="screen active">
+        <div class="relative flex h-screen min-h-[600px] w-full flex-col font-display group/design-root overflow-hidden bg-background-light dark:bg-background-dark">
+            <div class="absolute inset-0 gradient-bg z-0"></div>
+            <div class="w-full max-w-sm mx-auto flex flex-col h-full p-4 z-10">
+                <header class="flex justify-between items-center mb-4">
+                    <div></div>
+                    <div @keydown.escape.window="open = false; settingsOpen = false" class="relative" x-data="{ open: false, settingsOpen: false }">
+                        <button @click="open = !open" class="btn-glow flex items-center justify-center h-10 w-10 text-white/80 hover:text-white transition-colors" onclick="playClickSound()">
+                            <span class="material-symbols-outlined">more_vert</span>
+                        </button>
+                        <div @click.away="open = false" class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-glass-dark backdrop-blur-lg border border-white/10 shadow-glass focus:outline-none z-20" x-cloak="" x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-end="transform opacity-100 scale-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:leave="transition ease-in duration-75" x-transition:leave-end="transform opacity-0 scale-95" x-transition:leave-start="transform opacity-100 scale-100">
+                            <div aria-labelledby="options-menu" aria-orientation="vertical" class="py-1" role="menu">
+                                <a @click.prevent="settingsOpen = true; open = false" class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10" href="#" role="menuitem" onclick="showScreen('settings-screen'); playClickSound()">Settings</a>
+                                <a class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10" href="#" role="menuitem" onclick="showScreen('about-screen'); playClickSound()">About Us</a>
+                                <a class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10" href="#" role="menuitem" onclick="showScreen('privacy-screen'); playClickSound()">Privacy Policy</a>
+                                <a class="block px-4 py-2 text-sm text-white/90 hover:bg-white/10" href="#" role="menuitem" onclick="showScreen('terms-screen'); playClickSound()">Terms & Conditions</a>
+                            </div>
+                        </div>
+                        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" x-cloak="" x-show="settingsOpen">
+                            <div @click.away="settingsOpen = false" class="w-full max-w-sm rounded-2xl bg-glass-dark backdrop-blur-lg border border-white/10 shadow-glass p-6 text-white/90">
+                                <div class="flex justify-between items-center mb-6">
+                                    <h3 class="text-xl font-bold">Settings</h3>
+                                    <button @click="settingsOpen = false" class="text-white/70 hover:text-white" onclick="playClickSound()">×</button>
+                                </div>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-white/80">Theme Customize</h4>
+                                    <div class="grid grid-cols-5 gap-3">
+                                        <div id="theme-liquid" class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 border-2 border-cyan-400 cursor-pointer" onclick="changeTheme('liquid'); playClickSound()"></div>
+                                        <div id="theme-crystal" class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-400 to-teal-500 cursor-pointer" onclick="changeTheme('crystal'); playClickSound()"></div>
+                                        <div id="theme-holo" class="w-12 h-12 rounded-lg bg-gradient-to-br from-pink-500 to-orange-400 cursor-pointer" onclick="changeTheme('holo'); playClickSound()"></div>
+                                        <div id="theme-carbon" class="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-yellow-500 cursor-pointer" onclick="changeTheme('carbon'); playClickSound()"></div>
+                                        <div id="theme-gold" class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 cursor-pointer" onclick="changeTheme('gold'); playClickSound()"></div>
+                                    </div>
+                                </div>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-white/80">Color Customize</h4>
+                                    <div class="grid grid-cols-7 gap-2">
+                                        <div id="color-cyan" class="w-8 h-8 rounded-full bg-cyan-400 cursor-pointer border-2 border-white/20" onclick="changeAccentColor('#00bcd4'); playClickSound()"></div>
+                                        <div id="color-pink" class="w-8 h-8 rounded-full bg-pink-500 cursor-pointer" onclick="changeAccentColor('#e91e63'); playClickSound()"></div>
+                                        <div id="color-green" class="w-8 h-8 rounded-full bg-green-400 cursor-pointer" onclick="changeAccentColor('#4caf50'); playClickSound()"></div>
+                                        <div id="color-yellow" class="w-8 h-8 rounded-full bg-yellow-400 cursor-pointer" onclick="changeAccentColor('#ffeb3b'); playClickSound()"></div>
+                                        <div id="color-orange" class="w-8 h-8 rounded-full bg-orange-500 cursor-pointer" onclick="changeAccentColor('#ff9800'); playClickSound()"></div>
+                                        <div id="color-indigo" class="w-8 h-8 rounded-full bg-indigo-500 cursor-pointer" onclick="changeAccentColor('#3f51b5'); playClickSound()"></div>
+                                        <div id="color-red" class="w-8 h-8 rounded-full bg-red-500 cursor-pointer" onclick="changeAccentColor('#f44336'); playClickSound()"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <h4 class="font-semibold text-white/80">Dark/Light Mode</h4>
+                                    <button id="darkModeToggle" aria-checked="true" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-cyan-400 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-background-dark" role="switch" onclick="toggleDarkMode(); playClickSound()">
+                                        <span class="pointer-events-none inline-block h-5 w-5 translate-x-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div class="flex flex-col justify-end items-end flex-1 mb-6 px-4 py-6 bg-glass-light backdrop-blur-md rounded-2xl border border-white/10 shadow-glass">
+                    <h2 id="expression" class="text-white/60 tracking-light text-[28px] font-bold leading-tight text-right w-full"></h2>
+                    <h1 id="result" class="text-white tracking-light text-6xl font-bold leading-tight text-right w-full">0</h1>
+                </div>
+                <div class="grid grid-cols-4 gap-4">
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-dark text-cyan-300 text-2xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-glass-dark/80 transition-colors" onclick="clearAll(); playClickSound()">
+                        <span class="truncate">AC</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-dark text-cyan-300 text-2xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-glass-dark/80 transition-colors" onclick="toggleSign(); playClickSound()">
+                        <span class="truncate">+/-</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-dark text-cyan-300 text-2xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-glass-dark/80 transition-colors" onclick="percentage(); playClickSound()">
+                        <span class="truncate">%</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-gradient-to-br from-blue-500/70 to-purple-600/70 text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:from-blue-600/90 active:to-purple-700/90 transition-all" onclick="setOperator('/'); playClickSound()">
+                        <span class="truncate">÷</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('7'); playClickSound()">
+                        <span class="truncate">7</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('8'); playClickSound()">
+                        <span class="truncate">8</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('9'); playClickSound()">
+                        <span class="truncate">9</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-gradient-to-br from-blue-500/70 to-purple-600/70 text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:from-blue-600/90 active:to-purple-700/90 transition-all" onclick="setOperator('*'); playClickSound()">
+                        <span class="truncate">×</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('4'); playClickSound()">
+                        <span class="truncate">4</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('5'); playClickSound()">
+                        <span class="truncate">5</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('6'); playClickSound()">
+                        <span class="truncate">6</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-gradient-to-br from-blue-500/70 to-purple-600/70 text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:from-blue-600/90 active:to-purple-700/90 transition-all" onclick="setOperator('-'); playClickSound()">
+                        <span class="truncate">-</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('1'); playClickSound()">
+                        <span class="truncate">1</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('2'); playClickSound()">
+                        <span class="truncate">2</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('3'); playClickSound()">
+                        <span class="truncate">3</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-gradient-to-br from-blue-500/70 to-purple-600/70 text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:from-blue-600/90 active:to-purple-700/90 transition-all" onclick="setOperator('+'); playClickSound()">
+                        <span class="truncate">+</span>
+                    </button>
+                    <button class="btn-glow col-span-2 flex items-center justify-center overflow-hidden rounded-full h-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendNumber('0'); playClickSound()">
+                        <span class="truncate">0</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-glass-light text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-glass active:bg-white/20 transition-colors" onclick="appendDecimal(); playClickSound()">
+                        <span class="truncate">.</span>
+                    </button>
+                    <button class="btn-glow flex items-center justify-center overflow-hidden rounded-full h-20 w-20 bg-gradient-to-br from-cyan-400 to-primary text-white text-3xl font-bold leading-normal tracking-[0.015em] backdrop-blur-sm border border-white/10 shadow-lg active:from-cyan-500 active:to-blue-700 transition-all" onclick="calculate(); playClickSound()">
+                        <span class="truncate">=</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+            <!-- Top App Bar -->
+            <div class="flex items-center p-4 pb-2 justify-between sticky top-0 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm z-10">
+                <div class="text-slate-800 dark:text-white flex size-12 shrink-0 items-center justify-start">
+                    <span class="material-symbols-outlined text-2xl btn-glow" onclick="showScreen('main-screen'); playClickSound()">arrow_back</span>
+                </div>
+                <h1 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Settings</h1>
+                <div class="flex size-12 shrink-0 items-center"></div>
+            </div>
+            <div class="p-4 space-y-8">
+                <!-- Display Section -->
+                <div>
+                    <h2 class="text-slate-500 dark:text-slate-400 text-sm font-bold tracking-wider uppercase px-4 pb-2 pt-4">Display</h2>
+                    <div class="bg-slate-200/50 dark:bg-slate-800/50 rounded-xl">
+                        <div class="flex items-center gap-4 px-4 min-h-14 justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="text-slate-800 dark:text-white flex items-center justify-center rounded-lg bg-slate-300 dark:bg-slate-700 shrink-0 size-10">
+                                    <span class="material-symbols-outlined text-2xl">dark_mode</span>
+                                </div>
+                                <p class="text-slate-900 dark:text-white text-base font-normal leading-normal flex-1 truncate">Dark Mode</p>
+                            </div>
+                            <div class="shrink-0">
+                                <label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-slate-300 dark:bg-slate-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary has-[:checked]:shadow-glow-primary-light">
+                                    <div class="h-full w-[27px] rounded-full bg-white transition-transform" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
+                                    <input id="settingsDarkModeToggle" checked="" class="invisible absolute" type="checkbox" onchange="toggleDarkMode(); playClickSound()">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Customize Section -->
+                <div>
+                    <h2 class="text-slate-500 dark:text-slate-400 text-sm font-bold tracking-wider uppercase px-4 pb-2 pt-4">Customize</h2>
+                    <div class="bg-slate-200/50 dark:bg-slate-800/50 rounded-xl p-4 space-y-6">
+                        <!-- Theme Selector -->
+                        <div>
+                            <h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight tracking-[-0.015em] pb-3">Theme</h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="flex flex-col items-center gap-2">
+                                    <button id="settings-theme-liquid" class="relative w-full aspect-square rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 ring-4 ring-primary shadow-glow-primary" onclick="changeTheme('liquid'); playClickSound()">
+                                        <span class="absolute inset-0.5 rounded-[10px] bg-background-dark/30 backdrop-blur-sm"></span>
+                                    </button>
+                                    <span class="text-slate-800 dark:text-white text-xs font-medium">Liquid</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2">
+                                    <button id="settings-theme-crystal" class="relative w-full aspect-square rounded-xl bg-gradient-to-br from-cyan-300 to-blue-400" onclick="changeTheme('crystal'); playClickSound()">
+                                        <span class="absolute inset-0.5 rounded-[10px] bg-background-dark/30 backdrop-blur-sm"></span>
+                                    </button>
+                                    <span class="text-slate-600 dark:text-slate-400 text-xs font-medium">Crystal</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2">
+                                    <button id="settings-theme-holo" class="relative w-full aspect-square rounded-xl bg-gradient-to-br from-pink-400 to-purple-600" onclick="changeTheme('holo'); playClickSound()">
+                                        <span class="absolute inset-0.5 rounded-[10px] bg-background-dark/30 backdrop-blur-sm"></span>
+                                    </button>
+                                    <span class="text-slate-600 dark:text-slate-400 text-xs font-medium">Holo</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2">
+                                    <button id="settings-theme-carbon" class="relative w-full aspect-square rounded-xl bg-gradient-to-br from-slate-600 to-slate-800" onclick="changeTheme('carbon'); playClickSound()">
+                                        <span class="absolute inset-0.5 rounded-[10px] bg-background-dark/30 backdrop-blur-sm"></span>
+                                    </button>
+                                    <span class="text-slate-600 dark:text-slate-400 text-xs font-medium">Carbon</span>
+                                </div>
+                                <div class="flex flex-col items-center gap-2">
+                                    <button id="settings-theme-gold" class="relative w-full aspect-square rounded-xl bg-gradient-to-br from-amber-300 to-orange-500" onclick="changeTheme('gold'); playClickSound()">
+                                        <span class="absolute inset-0.5 rounded-[10px] bg-background-dark/30 backdrop-blur-sm"></span>
+                                    </button>
+                                    <span class="text-slate-600 dark:text-slate-400 text-xs font-medium">Gold</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Accent Color Selector -->
+                        <div>
+                            <h3 class="text-slate-900 dark:text-white text-base font-bold leading-tight tracking-[-0.015em] pb-3">Accent Color</h3>
+                            <div class="flex items-center justify-between">
+                                <button id="settings-color-primary" class="size-9 rounded-full bg-[#1313ec] ring-2 ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark ring-primary shadow-glow-primary" onclick="changeAccentColor('#1313ec'); playClickSound()"></button>
+                                <button id="settings-color-green" class="size-9 rounded-full bg-[#39ff14]" onclick="changeAccentColor('#39ff14'); playClickSound()"></button>
+                                <button id="settings-color-purple" class="size-9 rounded-full bg-[#9d00ff]" onclick="changeAccentColor('#9d00ff'); playClickSound()"></button>
+                                <button id="settings-color-orange" class="size-9 rounded-full bg-[#ff8c00]" onclick="changeAccentColor('#ff8c00'); playClickSound()"></button>
+                                <button id="settings-color-pink" class="size-9 rounded-full bg-[#ff007f]" onclick="changeAccentColor('#ff007f'); playClickSound()"></button>
+                                <button id="settings-color-cyan" class="size-9 rounded-full bg-[#00f0ff]" onclick="changeAccentColor('#00f0ff'); playClickSound()"></button>
+                                <button id="settings-color-yellow" class="size-9 rounded-full bg-[#fcec03]" onclick="changeAccentColor('#fcec03'); playClickSound()"></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- About Section -->
+                <div>
+                    <h2 class="text-slate-500 dark:text-slate-400 text-sm font-bold tracking-wider uppercase px-4 pb-2 pt-4">About</h2>
+                    <div class="bg-slate-200/50 dark:bg-slate-800/50 rounded-xl divide-y divide-slate-300 dark:divide-slate-700">
+                        <a class="flex items-center gap-4 px-4 min-h-14 justify-between" href="#" onclick="showScreen('about-screen'); playClickSound()">
+                            <div class="flex items-center gap-4">
+                                <div class="text-slate-800 dark:text-white flex items-center justify-center rounded-lg bg-slate-300 dark:bg-slate-700 shrink-0 size-10">
+                                    <span class="material-symbols-outlined text-2xl">info</span>
+                                </div>
+                                <p class="text-slate-900 dark:text-white text-base font-normal leading-normal flex-1 truncate">About Us</p>
+                            </div>
+                            <div class="shrink-0 text-slate-500 dark:text-slate-400">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </div>
+                        </a>
+                        <a class="flex items-center gap-4 px-4 min-h-14 justify-between" href="#" onclick="showScreen('privacy-screen'); playClickSound()">
+                            <div class="flex items-center gap-4">
+                                <div class="text-slate-800 dark:text-white flex items-center justify-center rounded-lg bg-slate-300 dark:bg-slate-700 shrink-0 size-10">
+                                    <span class="material-symbols-outlined text-2xl">privacy_tip</span>
+                                </div>
+                                <p class="text-slate-900 dark:text-white text-base font-normal leading-normal flex-1 truncate">Privacy Policy</p>
+                            </div>
+                            <div class="shrink-0 text-slate-500 dark:text-slate-400">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </div>
+                        </a>
+                        <a class="flex items-center gap-4 px-4 min-h-14 justify-between" href="#" onclick="showScreen('terms-screen'); playClickSound()">
+                            <div class="flex items-center gap-4">
+                                <div class="text-slate-800 dark:text-white flex items-center justify-center rounded-lg bg-slate-300 dark:bg-slate-700 shrink-0 size-10">
+                                    <span class="material-symbols-outlined text-2xl">gavel</span>
+                                </div>
+                                <p class="text-slate-900 dark:text-white text-base font-normal leading-normal flex-1 truncate">Terms & Conditions</p>
+                            </div>
+                            <div class="shrink-0 text-slate-500 dark:text-slate-400">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="py-8 mt-4 text-center">
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Version 1.0.0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Screen -->
+    <div id="about-screen" class="screen">
+        <div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-gradient-to-br from-[#101022] to-[#0F0C29] dark group/design-root overflow-x-hidden">
+            <!-- Top App Bar -->
+            <div class="sticky top-0 z-10 flex items-center bg-background-dark/50 p-4 pb-2 backdrop-blur-sm justify-between">
+                <button class="text-white flex size-12 shrink-0 items-center justify-start">
+                    <span class="material-symbols-outlined btn-glow" onclick="showScreen('main-screen'); playClickSound()">arrow_back_ios_new</span>
+                </button>
+                <h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">About Us</h2>
+                <div class="w-12"></div>
+            </div>
+            <!-- Hero Section -->
+            <div class="flex flex-col items-center px-4 pt-12 pb-8">
+                <div class="w-24 h-24 mb-4 flex items-center justify-center hero-glow">
+                    <img alt="EasyCalculator App Logo" class="w-full h-full object-contain" src="https://z-cdn-media.chatglm.cn/files/e9ff0397-1bf0-4a71-9315-4ab5fdfb1f09_1761908991946.png?auth_key=1761918148-4adb6bc119e24ac385944be44d65d5ca-0-512bae31b66178a7059d4ec7ecd7c6a5" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0Cb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj4KICA8cGF0aCBkPSJNMTYgOGgtMlY2YzAtMS4xLS45LTItMi0ySDZjLTEuMSAwLTIgLjktMiAydjJIMmMwLTEuMS45LTIgMi0yaDEwYzEuMSAwIDItLjkgMi0ydi0yaDJ2MmMwIDEuMS0uOSAyLTIgMkg2Yy0xLjEgMC0yLS45LTItMnYtMkg0Yy0xLjEgMC0yIC45LTIgMnYxMGMwIDEuMS45IDIgMiAyaDEwYzEuMSAwIDItLjkgMi0ydi0yaDJ2LTJjMC0xLjEtLjktMi0yLTJ6Ii8+Cjwvc3ZnPg==';">
+                </div>
+                <h1 class="text-white tracking-light text-[32px] font-bold leading-tight text-center">EasyCalculator</h1>
+                <p class="text-white/80 text-base font-normal leading-normal text-center mt-2">Making complex calculations simple and intuitive.</p>
+            </div>
+            <div class="flex flex-col gap-6 px-4 pb-12">
+                <!-- Our Mission Card -->
+                <div class="glass-card rounded-xl p-6 glow-border">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-3">Our Mission</h2>
+                    <p class="text-white/80 text-base font-normal leading-normal">Our mission is to provide a powerful yet user-friendly calculator that handles everyday calculations with ease. We believe in creating tools that simplify complex mathematical operations for everyone.</p>
+                </div>
+                <!-- Key Features Card -->
+                <div class="glass-card rounded-xl p-6 glow-border">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-5">Key Features</h2>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span class="material-symbols-outlined text-cyan-400 mt-1 icon-glow dynamic-text-color">calculate</span>
+                            <div>
+                                <h3 class="text-white font-bold">Advanced Calculation Engine</h3>
+                                <p class="text-white/70 text-sm">Handle complex mathematical functions with precision.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="material-symbols-outlined text-cyan-400 mt-1 icon-glow dynamic-text-color">palette</span>
+                            <div>
+                                <h3 class="text-white font-bold">Beautiful UI</h3>
+                                <p class="text-white/70 text-sm">Enjoy a modern, intuitive interface with customizable themes.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="material-symbols-outlined text-cyan-400 mt-1 icon-glow dynamic-text-color">history</span>
+                            <div>
+                                <h3 class="text-white font-bold">History Tracking</h3>
+                                <p class="text-white/70 text-sm">Keep track of your calculations for reference.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <!-- The Team Card -->
+                <div class="glass-card rounded-xl p-6 glow-border">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-5">Meet the Developer</h2>
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-20 h-20 rounded-full mb-3 bg-center bg-no-repeat bg-cover border-2 border-primary/50 dynamic-border-color" id="developer-image" style='background-image: url("https://z-cdn-media.chatglm.cn/files/1761883490648.jpg?auth_key=1761918148-4adb6bc119e24ac385944be44d65d5ca-0-512bae31b66178a7059d4ec7ecd7c6a5");' onerror="this.onerror=null; this.style.backgroundImage='url(https://picsum.photos/seed/developer/200/200.jpg)'"></div>
+                        <h3 class="text-white font-bold">Elite2Dev</h3>
+                        <p class="text-white/70 text-sm">Lead Developer</p>
+                        <a href="mailto:elvoralabs9@gmail.com" class="text-cyan-400 text-sm mt-1 dynamic-text-color">elvoralabs9@gmail.com</a>
+                    </div>
+                </div>
+                <!-- Contact Card -->
+                <div class="glass-card rounded-xl p-6 glow-border">
+                    <h2 class="text-white text-[22px] font-bold leading-tight tracking-[-0.015em] mb-3">Contact Us</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-cyan-400 dynamic-text-color">email</span>
+                            <a href="mailto:elvoralabs9@gmail.com" class="text-white/80 dynamic-text-color">elvoralabs9@gmail.com</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="px-4 py-8 mt-auto">
+                <p class="text-white/50 text-xs text-center">Version 1.0.0</p>
+                <p class="text-white/50 text-xs text-center mt-1">© 2025 Elite2Dev. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Screen -->
+    <div id="privacy-screen" class="screen">
+        <div class="relative flex min-h-screen w-full flex-col items-center bg-gradient-to-br from-[#1a1a2e] to-[#0d0d1a] overflow-x-hidden">
+            <!-- Glow Effects -->
+            <div class="glow-effect top-[-10%] left-[-10%] h-96 w-96 bg-[#93F5F2]"></div>
+            <div class="glow-effect bottom-[-15%] right-[-15%] h-96 w-96 bg-fuchsia-500"></div>
+            <div class="glow-effect top-[30%] left-[20%] h-80 w-80 bg-purple-600"></div>
+            <div class="flex h-full w-full max-w-4xl flex-col p-4 sm:p-6 lg:p-8">
+                <!-- TopAppBar -->
+                <header class="flex items-center justify-between pb-4 pt-2">
+                    <button class="flex size-12 items-center justify-center text-[#E0E0E0] hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-3xl btn-glow" onclick="showScreen('main-screen'); playClickSound()">arrow_back</span>
+                    </button>
+                    <h1 class="text-xl font-bold leading-tight tracking-[-0.015em] text-[#E0E0E0] flex-1 text-center">Privacy Policy</h1>
+                    <div class="size-12"></div> <!-- Spacer for balance -->
+                </header>
+                <!-- Main Content Card -->
+                <main class="liquid-glass flex-1 rounded-xl shadow-2xl overflow-hidden">
+                    <div class="h-full overflow-y-auto p-6 custom-scrollbar">
+                        <!-- Last Updated -->
+                        <p class="text-sm font-normal leading-normal text-[#E0E0E0]/80 pb-6">Last Updated: October 26, 2025</p>
+                        <!-- Section: Introduction -->
+                        <section class="mb-8">
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">Introduction</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0]">Welcome to the EasyCalculator App. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our mobile application.</p>
+                        </section>
+                        <!-- Section: Information We Collect -->
+                        <section class="mb-8">
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">Information We Collect</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0] mb-4">We may collect information about you in a variety of ways. The information we may collect via the Application depends on the content and materials you use, and includes:</p>
+                            <ul class="list-disc list-inside space-y-2 pl-2">
+                                <li class="text-base font-normal leading-relaxed text-[#E0E0E0]"><strong class="font-medium">Usage Data:</strong> Information automatically collected when you use the app, such as the features you use, the actions you take, and the time, frequency, and duration of your activities.</li>
+                                <li class="text-base font-normal leading-relaxed text-[#E0E0E0]"><strong class="font-medium">Device Information:</strong> Information about your mobile device, including your device model, operating system version, and unique device identifiers.</li>
+                                <li class="text-base font-normal leading-relaxed text-[#E0E0E0]"><strong class="font-medium">Calculation History:</strong> Your calculation history is stored locally on your device and is not transmitted to our servers.</li>
+                            </ul>
+                        </section>
+                        <!-- Section: How We Use Your Information -->
+                        <section class="mb-8">
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">How We Use Your Information</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0]">Having accurate information about you permits us to provide you with a smooth, efficient, and customized experience. Specifically, we may use information collected about you via the Application to monitor and analyze usage and trends to improve your experience with the Application.</p>
+                        </section>
+                        <!-- Section: Data Security -->
+                        <section class="mb-8">
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">Data Security</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0]">We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.</p>
+                        </section>
+                        <!-- Section: Changes to This Privacy Policy -->
+                        <section class="mb-8">
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">Changes to This Privacy Policy</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0]">We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes.</p>
+                        </section>
+                        <!-- Section: Contact Us -->
+                        <section>
+                            <h2 class="text-[22px] font-bold leading-tight tracking-[-0.015em] text-[#93F5F2] pb-3 dynamic-text-color">Contact Us</h2>
+                            <p class="text-base font-normal leading-relaxed text-[#E0E0E0]">If you have questions or comments about this Privacy Policy, please contact us at: <a class="text-[#93F5F2] hover:underline dynamic-text-color" href="mailto:elvoralabs9@gmail.com">elvoralabs9@gmail.com</a></p>
+                        </section>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions Screen -->
+    <div id="terms-screen" class="screen">
+        <div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-gradient-to-br from-[#101022] to-[#0F0C29] dark group/design-root overflow-x-hidden">
+            <div class="sticky top-0 z-10 flex items-center bg-background-dark/50 p-4 pb-2 backdrop-blur-sm justify-between">
+                <button class="text-white flex size-12 shrink-0 items-center justify-start">
+                    <span class="material-symbols-outlined btn-glow" onclick="showScreen('main-screen'); playClickSound()">arrow_back_ios_new</span>
+                </button>
+                <h1 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Terms & Conditions</h1>
+                <div class="w-12"></div>
+            </div>
+            <div class="flex-grow px-4 pt-6 pb-12">
+                <div class="glass-card rounded-xl p-6 glow-border">
+                    <div class="mb-4">
+                        <h2 class="text-white/80 text-sm font-normal leading-normal">Last Updated: October 26, 2025</h2>
+                        <p class="text-white/80 text-sm font-normal leading-normal mt-1">Please read these terms and conditions carefully before using Our Service.</p>
+                    </div>
+                    <div class="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">1. Acceptance of Terms</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">By accessing and using the EasyCalculator mobile application, you accept and agree to be bound by the terms and provision of this agreement. In addition, when using this application's particular services, you shall be subject to any posted guidelines or rules applicable to such services.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">2. Description of Service</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">Our application provides a calculator for various mathematical computations. The services are provided "as-is" and we assume no responsibility for the timeliness, deletion, mis-delivery or failure to store any user communications or personalization settings.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">3. User Conduct</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">You are responsible for all your activity in connection with the services and must comply with all applicable local, state, national, and international laws and regulations. You agree not to use the service for any purpose that is prohibited by these terms.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">4. Intellectual Property</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">The App and its original content, features, and functionality are and will remain the exclusive property of Elite2Dev and its licensors. The service is protected by copyright, trademark, and other laws of both the United States and foreign countries.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">5. Termination</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">We may terminate or suspend your access to our Service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.</p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em] dynamic-text-color">6. Contact Information</h3>
+                            <p class="text-white/70 text-base font-normal leading-relaxed">If you have any questions about these Terms & Conditions, please contact us at: <a href="mailto:elvoralabs9@gmail.com" class="text-cyan-400 dynamic-text-color">elvoralabs9@gmail.com</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 py-8 mt-auto">
+                <p class="text-white/50 text-xs text-center">© 2025 Elite2Dev. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        // Calculator functionality
+        let currentNumber = '0';
+        let previousNumber = '';
+        let operation = null;
+        let shouldResetScreen = false;
+
+        const resultElement = document.getElementById('result');
+        const expressionElement = document.getElementById('expression');
+
+        function updateDisplay() {
+            resultElement.textContent = currentNumber;
+            if (operation != null) {
+                expressionElement.textContent = `${previousNumber} ${operation}`;
+            } else {
+                expressionElement.textContent = '';
+            }
+        }
+
+        function clearAll() {
+            currentNumber = '0';
+            previousNumber = '';
+            operation = null;
+            updateDisplay();
+        }
+
+        function appendNumber(num) {
+            if (currentNumber === '0' || shouldResetScreen) {
+                currentNumber = num;
+                shouldResetScreen = false;
+            } else {
+                currentNumber += num;
+            }
+            updateDisplay();
+        }
+
+        function appendDecimal() {
+            if (shouldResetScreen) {
+                currentNumber = '0.';
+                shouldResetScreen = false;
+            } else if (!currentNumber.includes('.')) {
+                currentNumber += '.';
+            }
+            updateDisplay();
+        }
+
+        function setOperator(op) {
+            if (operation !== null) calculate();
+            previousNumber = currentNumber;
+            operation = op;
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (operation === null || shouldResetScreen) return;
+            
+            let computation;
+            const prev = parseFloat(previousNumber);
+            const current = parseFloat(currentNumber);
+            
+            if (isNaN(prev) || isNaN(current)) return;
+            
+            switch (operation) {
+                case '+':
+                    computation = prev + current;
+                    break;
+                case '-':
+                    computation = prev - current;
+                    break;
+                case '*':
+                    computation = prev * current;
+                    break;
+                case '/':
+                    computation = prev / current;
+                    break;
+                default:
+                    return;
+            }
+            
+            currentNumber = String(computation);
+            operation = null;
+            previousNumber = '';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            currentNumber = String(parseFloat(currentNumber) * -1);
+            updateDisplay();
+        }
+
+        function percentage() {
+            currentNumber = String(parseFloat(currentNumber) / 100);
+            updateDisplay();
+        }
+
+        // Screen navigation
+        function showScreen(screenId) {
+            // Hide all screens
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the selected screen
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Theme and color customization
+        function changeTheme(theme) {
+            // Remove all theme classes from body
+            document.body.classList.remove('theme-liquid', 'theme-crystal', 'theme-holo', 'theme-carbon', 'theme-gold');
+            
+            // Add the selected theme class to body
+            document.body.classList.add(`theme-${theme}`);
+            
+            // Update selection indicators
+            document.querySelectorAll('[id^="theme-"], [id^="settings-theme-"]').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.getElementById(`theme-${theme}`).classList.add('selected');
+            document.getElementById(`settings-theme-${theme}`).classList.add('selected');
+            
+            // Apply theme-specific primary color
+            const themeColors = {
+                'liquid': '#1313ec',
+                'crystal': '#0a7ca4',
+                'holo': '#81689d',
+                'carbon': '#2d2d2d',
+                'gold': '#daa520'
+            };
+            
+            // Apply the theme color to all elements
+            applyColorToElements(themeColors[theme]);
+            
+            // Store preference
+            localStorage.setItem('calculatorTheme', theme);
+            
+            // Visual feedback
+            showNotification(`Theme changed to ${theme}`);
+        }
+
+        function changeAccentColor(color) {
+            // Apply the accent color to all elements
+            applyColorToElements(color);
+            
+            // Update selection indicators
+            document.querySelectorAll('[id^="color-"], [id^="settings-color-"]').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Find and update the matching color button
+            const colorMap = {
+                '#00bcd4': 'cyan',
+                '#e91e63': 'pink',
+                '#4caf50': 'green',
+                '#ffeb3b': 'yellow',
+                '#ff9800': 'orange',
+                '#3f51b5': 'indigo',
+                '#f44336': 'red',
+                '#1313ec': 'primary',
+                '#39ff14': 'green',
+                '#9d00ff': 'purple',
+                '#ff8c00': 'orange',
+                '#ff007f': 'pink',
+                '#00f0ff': 'cyan',
+                '#fcec03': 'yellow'
+            };
+            
+            const colorName = colorMap[color] || 'primary';
+            document.getElementById(`color-${colorName}`).classList.add('selected');
+            document.getElementById(`settings-color-${colorName}`).classList.add('selected');
+            
+            // Store preference
+            localStorage.setItem('calculatorAccentColor', color);
+            
+            // Visual feedback
+            showNotification(`Accent color changed`);
+        }
+
+        function applyColorToElements(color) {
+            // Set the CSS variable
+            document.documentElement.style.setProperty('--primary-color', color);
+            
+            // Apply color to all dynamic elements
+            document.querySelectorAll('.dynamic-color').forEach(el => {
+                el.style.backgroundColor = color;
+            });
+            
+            document.querySelectorAll('.dynamic-text-color').forEach(el => {
+                el.style.color = color;
+            });
+            
+            document.querySelectorAll('.dynamic-border-color').forEach(el => {
+                el.style.borderColor = color;
+            });
+            
+            document.querySelectorAll('.dynamic-glow').forEach(el => {
+                el.style.boxShadow = `0 0 15px ${color}`;
+            });
+            
+            // Apply to calculator buttons
+            document.querySelectorAll('.btn-glow').forEach(el => {
+                el.addEventListener('click', function() {
+                    this.style.boxShadow = `0 0 15px ${color}`;
+                    setTimeout(() => {
+                        this.style.boxShadow = '';
+                    }, 300);
+                });
+            });
+        }
+
+        function toggleDarkMode() {
+            const isDarkMode = document.documentElement.classList.toggle('dark');
+            
+            // Add or remove light-mode class
+            document.body.classList.toggle('light-mode', !isDarkMode);
+            
+            // Update toggle switches
+            const mainToggle = document.getElementById('darkModeToggle');
+            const settingsToggle = document.getElementById('settingsDarkModeToggle');
+            
+            if (mainToggle) {
+                mainToggle.setAttribute('aria-checked', isDarkMode);
+                const span = mainToggle.querySelector('span');
+                if (isDarkMode) {
+                    span.classList.add('translate-x-5');
+                    span.classList.remove('translate-x-0');
+                } else {
+                    span.classList.remove('translate-x-5');
+                    span.classList.add('translate-x-0');
+                }
+            }
+            
+            if (settingsToggle) {
+                settingsToggle.checked = isDarkMode;
+            }
+            
+            // Store preference
+            localStorage.setItem('calculatorDarkMode', isDarkMode);
+            
+            // Visual feedback
+            showNotification(isDarkMode ? 'Dark mode enabled' : 'Light mode enabled');
+        }
+
+        // Sound effect
+        function playClickSound() {
+            // Create a softer click sound using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 600; // Lower frequency for softer sound
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Lower volume
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // Notification system
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-primary text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+            notification.textContent = message;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Remove after 2 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved preferences
+            const darkMode = localStorage.getItem('calculatorDarkMode') === 'true';
+            const theme = localStorage.getItem('calculatorTheme') || 'liquid';
+            const accentColor = localStorage.getItem('calculatorAccentColor');
+            
+            // Apply dark mode
+            if (!darkMode) {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.add('light-mode');
+            }
+            
+            // Update toggle switches
+            const mainToggle = document.getElementById('darkModeToggle');
+            const settingsToggle = document.getElementById('settingsDarkModeToggle');
+            
+            if (mainToggle) {
+                mainToggle.setAttribute('aria-checked', darkMode);
+                const span = mainToggle.querySelector('span');
+                if (darkMode) {
+                    span.classList.add('translate-x-5');
+                    span.classList.remove('translate-x-0');
+                } else {
+                    span.classList.remove('translate-x-5');
+                    span.classList.add('translate-x-0');
+                }
+            }
+            
+            if (settingsToggle) {
+                settingsToggle.checked = darkMode;
+            }
+            
+            // Apply theme
+            changeTheme(theme);
+            
+            // Apply accent color
+            if (accentColor) {
+                changeAccentColor(accentColor);
+            }
+            
+            // Initialize calculator display
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
